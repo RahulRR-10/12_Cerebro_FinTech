@@ -92,6 +92,86 @@ async function fetchStockData(symbol) {
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  // Paths to CSV files
+  const CSV_PATHS = {
+    btc: "btc.csv",
+    eth: "eth.csv",
+  };
+  
+  // Currently selected asset
+  let selectedAsset = "btc";
+  
+  // Flag to prevent multiple concurrent fetches
+  let isFetching = false;
+  
+  // Function to fetch and append the last 10 rows
+  async function fetchAndAppendCSV() {
+    // Prevent concurrent fetches
+    if (isFetching) return;
+    
+    isFetching = true;
+    
+    try {
+      const csvPath = CSV_PATHS[selectedAsset];
+      const response = await fetch(csvPath, { 
+        cache: 'no-store',  // Disable browser caching
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${csvPath}`);
+      }
+      
+      const data = await response.text();
+      
+      // Parse CSV data
+      const rows = data.trim().split("\n");
+      const dataRows = rows.slice(1); // Skip the header row
+      
+      // Get the last 10 rows
+      const latestRows = dataRows.slice(-10);
+      
+      // Get the table body
+      const tableBody = document.getElementById("csv-table-body");
+      
+      // Append new rows
+      latestRows.forEach(row => {
+        const rowData = row.split(",");
+        const tr = document.createElement("tr");
+        
+        rowData.forEach(cell => {
+          const td = document.createElement("td");
+          td.textContent = cell.trim().replace(/^"|"$/g, ''); // Remove surrounding quotes
+          tr.appendChild(td);
+        });
+        
+        tableBody.appendChild(tr);
+      });
+      
+      // Ensure only the last 10 rows are kept
+      while (tableBody.rows.length > 10) {
+        tableBody.removeChild(tableBody.rows[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching CSV data:", error);
+    } finally {
+      isFetching = false;
+    }
+  }
+  
+  // Use requestAnimationFrame for more consistent updates
+  function scheduleFetch() {
+    fetchAndAppendCSV();
+    requestAnimationFrame(scheduleFetch);
+  }
+  
+  // Start the update cycle
+  scheduleFetch();
+});
+
 // Load TradingView Widget (For both Crypto and Stocks)
 function loadTradingViewWidget(symbol, isStock = false) {
   const containerId = isStock 
