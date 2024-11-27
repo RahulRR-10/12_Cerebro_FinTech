@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto and Stocks Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <div class="slider-container">
+    <div class="slider">
+      <button class="slider-btn active" id="crypto-slide">Crypto</button>
+      <button class="slider-btn" id="stocks-slide">Stocks</button>
+    </div>
+  </div>
+  <!-- Crypto Section -->
+  <div class="crypto-section" id="crypto-section">
+    <div class="market-overview-horizontal">
+      <span id="market-cap">Market Cap: Loading...</span> |
+      <span id="volume">24H Volume: Loading...</span> |
+      <span id="dominance">BTC Dominance: Loading...</span> |
+      <span id="fear-greed">Fear & Greed: Loading...</span>
+    </div>
+    <div class="crypto-selector">
+      <div class="crypto-tile" id="btc-tile">
+        <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=024" alt="Bitcoin Logo" class="crypto-icon">
+        Bitcoin (BTC)
+      </div>
+      <div class="crypto-tile" id="eth-tile">
+        <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=024" alt="Ethereum Logo" class="crypto-icon">
+        Ethereum (ETH)
+      </div>
+    </div>
+    <div class="graph-section">
+      <h3 id="selected-coin">Interactive Price Chart</h3>
+      <div id="tradingview-widget-container-crypto"></div>
+    </div>
+  </div>
+  <!-- Stocks Section -->
+  <div class="stocks-section" id="stocks-section">
+    <div class="market-overview-horizontal">
+      <span id="market-cap-stocks">Market Cap: Loading...</span> |
+      <span id="volume-stocks">24H Volume: Loading...</span> |
+      <span id="dominance-stocks">S&P 500 Dominance: Loading...</span>
+    </div>
+    <div class="crypto-selector">
+      <div class="crypto-tile" id="ndaq-tile">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/0a/NASDAQ_Logo.svg" alt="NASDAQ Logo" class="crypto-icon">
+        NASDAQ (NDX)
+      </div>
+      <div class="crypto-tile" id="nvdia-tile">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2d/NVIDIA_logo.svg" alt="NVIDIA Logo" class="crypto-icon">
+        NVIDIA (NVDA)
+      </div>
+      <div class="crypto-tile" id="apple-tile">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Apple_logo_black.svg" alt="Apple Logo" class="crypto-icon">
+        Apple (AAPL)
+      </div>
+      
+    </div>
+    
+    <div class="graph-section">
+      <h3 id="selected-stock">Interactive Price Chart</h3>
+      <div id="tradingview-widget-container-stocks"></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+

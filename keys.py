@@ -1,0 +1,2 @@
+api = 'V7mV1El0BGsd1EbIbRjCjVXSu7unXPtq2oXUYtmuef6OiP0rudDp9NaHazr5qO12'
+secret = 'hwFGMiFaL48cTlfZnTzOYINIrotaOFGPnnf1wldZvmKIFascMcxNugvte1nR6rnf'
