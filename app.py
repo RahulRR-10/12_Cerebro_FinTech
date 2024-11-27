@@ -5,15 +5,8 @@ import pandas as pd
 from time import sleep
 from binance.error import ClientError
 
-client = UMFutures(key = api, secret=secret)
 
-def get_tickers_usdt():
-    tickers = []
-    resp = client.ticker_price()
-    for elem in resp:
-        if 'USDT' in elem['symbol']:
-            tickers.append(elem['symbol'])
-    return tickers
+client = UMFutures(key = api, secret=secret)
 
 def klines(symbol):
     try:
