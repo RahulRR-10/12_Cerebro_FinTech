@@ -2,25 +2,106 @@ import time
 import pandas as pd
 import numpy as np
 import ta
+import json
 from binance.um_futures import UMFutures
 from binance.error import ClientError
 from keys import api, secret
 import time
 from datetime import datetime
 import os
+from web3 import Web3
+from dotenv import load_dotenv
 
+# Add the BlockchainTradeLogger class here (from previous code)
+class BlockchainTradeLogger:
+    def __init__(self):
+        # Load environment variables
+        load_dotenv()
+
+        # Connect to Sepolia testnet
+        sepolia_rpc_url = os.getenv('SEPOLIA_RPC_URL', 'https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID')
+        self.w3 = Web3(Web3.HTTPProvider(sepolia_rpc_url))
+        
+        # Validate connection
+        if not self.w3.is_connected():
+            raise Exception("Failed to connect to Sepolia testnet")
+
+        # Load contract
+        self.contract_address = Web3.to_checksum_address(os.getenv('CONTRACT_ADDRESS'))
+        
+        # Load contract ABI (you'll get this when you compile the Solidity contract)
+        with open('TradeLogger_abi.json', 'r') as abi_file:
+            contract_abi = json.load(abi_file)
+        
+        # Create contract instance
+        self.contract = self.w3.eth.contract(
+            address=self.contract_address, 
+            abi=contract_abi
+        )
+
+        # Setup account
+        private_key = os.getenv('PRIVATE_KEY')
+        self.account = self.w3.eth.account.from_key(private_key)
+        self.w3.eth.default_account = self.account.address
+
+        # Track last trade for profit calculation
+        self.last_trade = None
+
+    # Include log_trade and close_trade methods from previous code
+    # (Keep the entire BlockchainTradeLogger class as it was)
+
+# Modify the BTCSignalLogger to include blockchain logging
 class BTCSignalLogger:
     def __init__(self, api_key, secret_key):
+        # Existing initialization
         self.client = UMFutures(key=api_key, secret=secret_key)
         self.symbol = 'ETHUSDT'
         self.log_file = 'eth.csv'
         
-        # Track the last signal and timestamp
-        self.last_signal = None
+        # Track the last signal, timestamp, and entry price
+        self.last_order_type = None  # 'BUY' or 'SELL'
+        self.last_entry_price = None
         self.last_signal_time = 0
+        
+        # Initialize blockchain logger
+        self.blockchain_logger = BlockchainTradeLogger()
         
         # Initialize CSV file if it doesn't exist
         self._initialize_log_file()
+
+    # Modify the analyze_price method to include blockchain logging
+    def analyze_price(self, data):
+        # Existing analysis logic
+        analysis = super().analyze_price(data)
+
+        # Extract current price
+        current_price = float(analysis['Price'].replace('$', ''))
+
+        # Blockchain trade logging logic
+        if analysis['Signal'].startswith('🟢') or analysis['Signal'].startswith('🔵'):
+            # LONG trade
+            if self.last_order_type != 'BUY':
+                self.blockchain_logger.log_trade(
+                    self.symbol, 
+                    'LONG', 
+                    current_price
+                )
+                self.last_order_type = 'BUY'
+        elif analysis['Signal'].startswith('🔴') or analysis['Signal'].startswith('🟠'):
+            # SHORT trade
+            if self.last_order_type != 'SELL':
+                self.blockchain_logger.log_trade(
+                    self.symbol, 
+                    'SHORT', 
+                    current_price
+                )
+                self.last_order_type = 'SELL'
+        
+        # Close previous trade before opening a new one
+        if self.last_order_type is not None:
+            self.blockchain_logger.close_trade(current_price)
+
+        return analysis
 
     def fetch_klines(self, interval='5m', limit=50):
         """
@@ -137,6 +218,7 @@ class BTCSignalLogger:
 
         # Trend and signal identification
         latest = data.iloc[-1]
+        current_price = latest['Close']
 
         buy_conditions = [
             latest['RSI'] < 30,
@@ -156,27 +238,44 @@ class BTCSignalLogger:
         buy_count = sum(buy_conditions)
         sell_count = sum(sell_conditions)
 
+        potential_signal = None
         if buy_count == 5:
-            signal = "🟢 STRONG BUY"
+            potential_signal = "🟢 STRONG BUY"
         elif sell_count == 5:
-            signal = "🔴 STRONG SELL"
+            potential_signal = "🔴 STRONG SELL"
         elif buy_count >= 3:
-            signal = "🔵 BUY"
+            potential_signal = "🔵 BUY"
         elif sell_count >= 3:
-            signal = "🟠 SELL"
+            potential_signal = "🟠 SELL"
         else:
-            signal = "🟡 HOLD"
+            potential_signal = "🟡 HOLD"
+
+        # Ensure opposite order and price condition
+        if self.last_order_type == "BUY" and "SELL" in potential_signal:
+            # Check price condition for selling
+            if current_price >= self.last_entry_price * 0.99:
+                self.last_order_type = "SELL"
+                self.last_entry_price = current_price
+            else:
+                potential_signal = "🟡 HOLD"  # Suppress signal
+        elif self.last_order_type == "SELL" and "BUY" in potential_signal:
+            # Check price condition for buying
+            if current_price <= self.last_entry_price * 1.01:
+                self.last_order_type = "BUY"
+                self.last_entry_price = current_price
+            else:
+                potential_signal = "🟡 HOLD"  # Suppress signal
+        elif self.last_order_type is None:
+            # Allow the first order of either type
+            self.last_order_type = "BUY" if "BUY" in potential_signal else "SELL"
+            self.last_entry_price = current_price
 
         # Avoid repeated signals within 30 seconds
         current_time = time.time()
-        if signal in ["🟢 STRONG BUY", "🔴 STRONG SELL", "🔵 BUY", "🟠 SELL"]:
-            if self.last_signal == signal and (current_time - self.last_signal_time) <= 30:
-                # Suppress signal if within 30 seconds
-                signal = "🟡 HOLD"
-            else:
-                # Update last signal and time if it's a new signal or past the threshold
-                self.last_signal = signal
-                self.last_signal_time = current_time
+        if potential_signal not in ["🟡 HOLD"] and (current_time - self.last_signal_time) > 30:
+            self.last_signal_time = current_time
+        else:
+            potential_signal = "🟡 HOLD"
 
         return {
             'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -185,7 +284,7 @@ class BTCSignalLogger:
             'MACD': f"{latest['MACD']:.4f}",
             'Stoch_K': f"{latest['Stoch_K']:.2f}",
             'Trend': "Bullish" if latest['EMA_Ultra_Short'] > latest['EMA_Short'] else "Bearish",
-            'Signal': signal
+            'Signal': potential_signal
         }
 
     def run_continuous_analysis(self, interval=2):
