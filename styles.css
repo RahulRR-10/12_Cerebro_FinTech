@@ -213,3 +213,86 @@ body::before {
 .stocks-section {
   display: none;
 }
+/* Add these styles to your existing styles.css file */
+
+.predictor-controls {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.predictor-btn {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+#run-predictor {
+  background-color: #4CAF50;
+  color: white;
+}
+
+#stop-predictor {
+  background-color: #f44336;
+  color: white;
+}
+
+.predictor-output {
+  margin: 20px;
+  padding: 20px;
+  border-radius: 5px;
+  background-color: #1a1a1a;
+}
+
+#signals-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  color: #fff;
+}
+
+#signals-table th,
+#signals-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+#signals-table th {
+  background-color: #2a2a2a;
+  font-weight: bold;
+}
+
+.buy-signal {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.sell-signal {
+  color: #f44336;
+  font-weight: bold;
+}
+
+#csv-data-container-crypto {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+#csv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#csv-table th, #csv-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#csv-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
