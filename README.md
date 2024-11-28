@@ -28,3 +28,11 @@ To compensate for it, we had made it so that all the calls were getting saved in
 - Currently the model is checking if three of the five conditions are satisfied and hence a buy or a sell order is given as the output. If all five of the conditions are met, a Super Buy/ Super Sell call is made which will have the highest accuracy in all of the calls.
   
 - We have made the code such that we would get short term gains in order to show the results, but to make it more accurate we can increase the timeline of the indicators hence giving the code a bigger timeline to work on and hence create more accurate results.
+
+## Frontend:
+![WhatsApp Image 2024-11-28 at 08 27 36_c9c1ff50](https://github.com/user-attachments/assets/04dc37ce-7b88-4a28-92b3-fcb95c452472)
+
+![WhatsApp Image 2024-11-28 at 08 27 36_b4b658a2](https://github.com/user-attachments/assets/110d4252-bb5a-4bf4-8fc4-65968a93dbef)
+
+![WhatsApp Image 2024-11-28 at 08 27 36_6933c974](https://github.com/user-attachments/assets/904def84-c813-44cc-91ee-64bbeceb72c7)
+
